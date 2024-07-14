@@ -28,7 +28,8 @@ def set_board_from_fen(board, fen_string: str) -> None:
     if fen_offset == 0:
         fen_castling_rights = fen_parts[2]
         for piece in fen_castling_rights:
-            board.castling_rights.add(piece)
+            if piece in ("K", "Q", "k", "q"):
+                board.castling_rights.add(piece)
     # FEN en passant parsing
     fen_en_passant_target = fen_parts[3+fen_offset]
     if fen_en_passant_target == "-":

@@ -35,7 +35,7 @@ class Board:
         if from_fen_string:
             set_board_from_fen(self, from_fen_string)
         elif from_chars_list:
-            self.set_squares_from_chars(from_chars_list)
+            self.set_board_from_chars(from_chars_list)
         else:
             default_fen = (
                 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
@@ -76,7 +76,7 @@ class Board:
         return False
 
 
-    def set_squares_from_chars(self, chars_list: list[str]) -> None:
+    def set_board_from_chars(self, chars_list: list[str]) -> None:
         index: int = 0
         total_squares: int = self.size[0] * self.size[1] * 2
         for square in range(total_squares):
@@ -120,9 +120,15 @@ class Board:
             else:
                 print('Turn: black')
             # Castling rights
-            print(f'Castling rights: {self.castling_rights}')
+            if self.castling_rights:
+                print(f'Castling rights: {self.castling_rights}')
+            else:
+                print('Castling rights: None')
             # En passant target
-            print(f'En passant target: {self.en_passant_target}')
+            if self.en_passant_target != -1:
+                print(f'En passant target: {self.en_passant_target}')
+            else:
+                print('En passant target: None')
             # Half-move clock
             print(f'Half-move clock: {self.half_move_clock}')
             # Full-move number
