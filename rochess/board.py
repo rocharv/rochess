@@ -140,29 +140,35 @@ class Board:
         print(f"Valid moves ({len(valid_moves)}):", end=" ")
         for move in valid_moves:
             cpiece = self.squares[move[0]]
-            # capture or not move
-            if self.squares[move[1]] != '.':
+            # capture part
+            if self.squares[move[1]] != '.' and notation != "uci":
                 capture_part = "x"
             else:
                 capture_part = ""
-            # promotion
+            # promotion part
             if cpiece in ("P", "p") and (move[1] < 16 or move[1] > 111):
-                promotion_part = "=" + move[2]
+                if notation == "uci":
+                    promotion_part = move[2].lower()
+                elif notation == "algebraic":
+                    promotion_part = "=" + move[2]
+                elif notation == "symbolic":
+                    promotion_part = "=" + unicode_symbol[move[2]]
             else:
                 promotion_part = ""
+            # from and to parts
             if notation == "uci":
                 from_part = self.get_algebric_from_square(move[0])
-                capture_part = ""
                 to_part = self.get_algebric_from_square(move[1])
-                promotion_part = ""
             elif notation == "algebraic" or notation == "symbolic":
-                piece_char = cpiece
-                if notation == "symbolic":
+                if notation == "algebraic":
+                    piece_char = unicode_symbol[cpiece]
+                else:
                     piece_char = unicode_symbol[cpiece]
                 from_part = piece_char + self.get_algebric_from_square(move[0])
                 to_part = self.get_algebric_from_square(move[1])
+                # pawn exception
                 if cpiece.upper() == "P":
-                    if capture_part:
+                    if capture_part and not notation == "uci":
                         from_part = self.get_algebric_from_square(move[0])[0]
                         to_part = self.get_algebric_from_square(move[1])[0]
                     else:
