@@ -145,7 +145,7 @@ class Board:
                 capture_part = "x"
             else:
                 capture_part = ""
-            # promotion or not move
+            # promotion
             if cpiece in ("P", "p") and (move[1] < 16 or move[1] > 111):
                 promotion_part = "=" + move[2]
             else:
@@ -155,13 +155,19 @@ class Board:
                 capture_part = ""
                 to_part = self.get_algebric_from_square(move[1])
                 promotion_part = ""
-            elif notation == "algebraic":
-                from_part = cpiece + self.get_algebric_from_square(move[0])
+            elif notation == "algebraic" or notation == "symbolic":
+                piece_char = cpiece
+                if notation == "symbolic":
+                    piece_char = unicode_symbol[cpiece]
+                from_part = piece_char + self.get_algebric_from_square(move[0])
                 to_part = self.get_algebric_from_square(move[1])
-            elif notation == "symbolic":
-                from_part = (unicode_symbol[cpiece] +
-                             self.get_algebric_from_square(move[0]))
-                to_part = self.get_algebric_from_square(move[1])
+                if cpiece.upper() == "P":
+                    if capture_part:
+                        from_part = self.get_algebric_from_square(move[0])[0]
+                        to_part = self.get_algebric_from_square(move[1])[0]
+                    else:
+                        from_part = ""
+                        to_part = self.get_algebric_from_square(move[1])
             print(from_part + capture_part + to_part + promotion_part, end=" ")
         print()
 
