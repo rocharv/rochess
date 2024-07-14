@@ -5,7 +5,27 @@ def add_valid_move(board,
                    valid_moves: list[list[int|str]],
                    from_square: int, to_square: int,
                    destination_piece: str) -> None:
-    valid_moves.append([from_square, to_square, destination_piece])
+    # Save involved squares previous state
+    from_square_piece = board.squares[from_square]
+    to_square_piece = board.squares[to_square]
+    # Check king's safety after move
+    if board.white_turn:
+        king_square = board.white_king_square
+        white_ally = True
+    else:
+        king_square = board.black_king_square
+        white_ally = False
+    # Make move
+    board.squares[from_square] = '.'
+    board.piece_squares.remove(from_square)
+    board.squares[to_square] = destination_piece
+    # Check if king is not in check after move before adding it as a valid move
+    if not board.is_attacked_square(king_square, white_ally):
+        valid_moves.append([from_square, to_square, destination_piece])
+    # Undo move
+    board.squares[from_square] = from_square_piece
+    board.piece_squares.add(from_square)
+    board.squares[to_square] = to_square_piece
 
 
 def get_piece_valid_moves(board, piece_square: int) -> list[list[int|str]]:
