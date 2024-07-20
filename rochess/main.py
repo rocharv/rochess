@@ -1,8 +1,8 @@
-from board import Board
+from chess_board import ChessBoard
 
 
 def main() -> None:
-    board = Board(
+    board = ChessBoard(
         #from_fen_string="R6R/3Q4/1Q4Q1/4Q3/2Q4Q/Q4Q2/pp1Q4/kBNN1KB1 w - - 0 1"
         #from_fen_string="r1bqkbnr/pppp1ppp/2n5/4p3/3PP3/5N2/PPP2PPP/RNBQKB1R w KQkq - 0 1"
         from_fen_string="k3r3/5P2/8/8/8/8/8/7K w - - 0 1"
