@@ -28,6 +28,8 @@ class TestBoard:
             ".", ".", ".", ".", ".", ".", ".", ".", "-", "-", "-", "-", "-", "-", "-", "-",
             ".", ".", ".", ".", ".", ".", ".", ".", "-", "-", "-", "-", "-", "-", "-", "-",
         ]
+        # check piece_squares
+        assert chess_board.piece_squares == set()
 
 
     def test_board_get_piece(self):
@@ -70,6 +72,8 @@ class TestBoard:
             ".", "X", ".", "-", "-", "-",
             "O", ".", "X", "-", "-", "-"
         ]
+        # check piece_squares
+        assert tic_tac_toe_board.piece_squares == {0, 2, 7, 12, 14}
         # Tic-tac-toe get_piece after set_piece
         assert tic_tac_toe_board.get_piece(1, 1) == "O"
         assert tic_tac_toe_board.get_piece(3, 1) == "X"
@@ -100,6 +104,8 @@ class TestBoard:
             ".", "X", ".", "-", "-", "-",
             "O", ".", "X", "-", "-", "-"
         ]
+        # check piece_squares
+        assert tic_tac_toe_board.piece_squares == {0, 2, 7, 12, 14}
         # Chess set_piece
         chess_board = Board(8, 8)
         chess_board.set_piece(1, 1, "R")
@@ -119,6 +125,8 @@ class TestBoard:
             ".", ".", ".", ".", ".", ".", ".", ".", "-", "-", "-", "-", "-", "-", "-", "-",
             "R", ".", ".", ".", ".", ".", "K", "B", "-", "-", "-", "-", "-", "-", "-", "-",
         ]
+        # check piece_squares
+        assert chess_board.piece_squares == {0, 6, 7, 67, 112, 118, 119}
         # Chess get_piece after set_piece
         assert chess_board.get_piece(1, 1) == "R"
         assert chess_board.get_piece(7, 1) == "K"
@@ -165,3 +173,5 @@ class TestBoard:
             ".", ".", ".", ".", ".", ".", ".", ".", "-", "-", "-", "-", "-", "-", "-", "-",
             "R", ".", ".", ".", ".", ".", "K", "B", "-", "-", "-", "-", "-", "-", "-", "-",
         ]
+        # check piece_squares
+        assert chess_board.piece_squares == {0, 6, 7, 67, 112, 118, 119}
