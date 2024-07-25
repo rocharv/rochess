@@ -109,6 +109,21 @@ class Board:
                                       // (self.number_of_columns * 2))
 
 
+    def get_square(self, column: int, row: int) -> Square:
+        """
+        Returns the square of the column and row.
+
+        Parameters
+        ----------
+        column : int
+            The column of the square.
+        row : int
+            The row of the square.
+        """
+        return ((self.number_of_rows - row)
+                * self.number_of_columns * 2 + column - 1)
+
+
     def reset_squares(self) -> None:
         """
         Resets the squares of the board to empty squares and also clears
@@ -138,13 +153,13 @@ class Board:
         piece : Piece
             The piece to set.
         """
-        index: int = ((self.number_of_rows - row)
-                      * self.number_of_columns * 2 + column - 1)
-        self.squares[index] = piece
+        square: Square = ((self.number_of_rows - row)
+                          * self.number_of_columns * 2 + column - 1)
+        self.squares[square] = piece
         if piece != self.EMPTY_SQUARE:
-            self.piece_squares.add(index)
+            self.piece_squares.add(square)
         else:
-            self.piece_squares.discard
+            self.piece_squares.discard(square)
 
 
     def set_piece_alg(self,

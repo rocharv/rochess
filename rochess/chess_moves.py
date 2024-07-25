@@ -1,6 +1,6 @@
 import chess_pieces as pieces
-from typing import TypeAlias
 from chess_board import ChessBoard
+from typing import TypeAlias
 
 
 Square: TypeAlias = int
@@ -28,11 +28,11 @@ class ChessMoves:
 
     def get_piece_valid_moves(self,
                               piece_square: Square) -> list[Move]:
-        valid_moves: list[Move] = []
         move: Move = []
         new_square: Square = 0
         piece: Piece = self.board.squares[piece_square]
         piece_rank: int = self.board.get_row(piece_square)
+        valid_moves: list[Move] = []
         white_ally: bool = True
 
         # if is not piece's color turn
@@ -378,6 +378,39 @@ class ChessMoves:
                         break
                     new_square += offset
         return False
+
+
+    def make_move(self, move: Move) -> None:
+        capture_move: bool = False
+        from_square: Square = move[0]
+        to_square: Square = move[1]
+        if self.board[to_square] != self.board.EMPTY_SQUARE:
+            capture_move = True
+        piece: Piece = move[2]
+        if (from_square not in self.board.piece_squares or
+            move not in self.get_piece_valid_moves(from_square)):
+            return
+        self.board.set_piece(from_square, self.board.EMPTY_SQUARE)
+        self.board.set_piece(to_square, piece)
+        # update castling rights
+        if piece in pieces.ROYAL_PIECES:
+            self.board.castling_rights.discard(piece)
+            # update king's square
+            if piece == "K":
+                self.board.white_king_square = to_square
+            elif piece == "k":
+                self.board.black_king_square = to_square
+        # update en passant target
+        if piece.upper() == "P" and abs(from_square - to_square) == 32:
+            self.board.en_passant_target = to_square
+        # update full move number
+        if not self.board.is_white_turn:
+            self.board.full_move_number += 1
+        # update half move clock
+        if (piece.upper() == "P" or capture_move):
+            self.board.half_move_clock = 0
+        else:
+            self.board.half_move_clock += 1
 
 
     def show_all_valid_moves(self, notation: str = "uci") -> None:

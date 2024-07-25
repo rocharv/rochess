@@ -2,8 +2,6 @@ from board import Board
 from chess_pieces import ROYAL_PIECES, UNICODE_SYMBOLS
 from typing import TypeAlias
 
-from board import Piece
-
 
 Piece: TypeAlias = str
 Square: TypeAlias = int
@@ -104,6 +102,12 @@ class ChessBoard(Board):
         for char in chars_list:
             file += 1
             self.set_piece(file, rank, char)
+            # update king square
+            if char == "K":
+                self.white_king_square = self.get_square(file, rank)
+            elif char == "k":
+                self.black_king_square = self.get_square(file, rank)
+            # update file and rank
             if file == self.number_of_columns:
                 file = 0
                 rank -= 1
@@ -175,6 +179,11 @@ class ChessBoard(Board):
             else:
                 file += 1
                 self.set_piece(file, rank, char)
+                # update king square
+                if char == "K":
+                    self.white_king_square = self.get_square(file, rank)
+                elif char == "k":
+                    self.black_king_square = self.get_square(file, rank)
         # FEN turn parsing
         fen_turn = fen_parts[1]
         if fen_turn == "w":
@@ -200,79 +209,6 @@ class ChessBoard(Board):
         # FEN position parsing
         fen_full_move_number = int(fen_parts[5 + fen_offset])
         self.full_move_number = fen_full_move_number
-
-
-    def set_piece(self, file: int, rank: int, piece: Piece) -> None:
-        """
-        Set a piece on the chess board at the specified file and rank.
-
-        Parameters
-        ----------
-        file : int
-            The file (column) where the piece should be placed.
-        rank : int
-            The rank (row) where the piece should be placed.
-        piece : Piece
-            The piece to be placed on the chess board.
-
-        Returns
-        -------
-        None
-
-        Notes
-        -----
-        - The file and rank parameters should be valid positions on the
-        chess board.
-        - The piece parameter should be a valid chess piece.
-
-        """
-        super().set_piece(file, rank, piece)
-        if piece == "K":
-            square: Square = ((self.number_of_rows - rank)
-                              * self.number_of_columns * 2 + file - 1)
-            self.white_king_square = square
-        elif piece == "k":
-            square: Square = ((self.number_of_rows - rank)
-                              * self.number_of_columns * 2 + file - 1)
-            self.black_king_square = square
-
-
-    def set_piece_alg(self,
-                      algebraic_coordinate: str,
-                      piece: str) -> None:
-        """
-        Set a piece on the chess board at the specified algebraic
-        coordinate.
-
-        Parameters
-        ----------
-        algebraic_coordinate : str
-            The algebraic coordinate (e.g. "a1", "e4") where the piece
-            should
-            be placed.
-        piece : str
-            The piece to be placed on the chess board.
-
-        Returns
-        -------
-        None
-
-        Notes
-        -----
-        - The algebraic_coordinate parameter should be a valid
-        coordinate on the chess board.
-        - The piece parameter should be a valid chess piece.
-
-        Examples
-        --------
-        >>> board = ChessBoard()
-        >>> board.set_piece_alg("e4", "P")
-        """
-        column: int = (
-            self.COLUMN_NAMES.index(algebraic_coordinate[0]) + 1
-        )
-        row: int = int(algebraic_coordinate[1])
-        self.set_piece(column, row, piece)
 
 
     def show_info(self) -> None:
