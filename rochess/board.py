@@ -1,8 +1,5 @@
-from typing import TypeAlias
-
-
-Square: TypeAlias = int
-Piece: TypeAlias = str
+type Piece = str
+type Square = int
 
 
 class Board:

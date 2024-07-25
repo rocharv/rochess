@@ -1,15 +1,14 @@
 import chess_pieces as pieces
 from chess_board import ChessBoard
-from typing import TypeAlias
 
 
-Square: TypeAlias = int
-Piece: TypeAlias = str
-# Move is a list of two squares and a piece, in the form
+type Square = int
+type Piece = str
+# Move is a tuple of two squares and a piece, in the form
 # [from_square, to_square, piece]. The piece is the piece that will be
 # on the destination square after the move, this is relevant because of
 # pawn promotions.
-Move: TypeAlias = list[Square|Piece]
+type Move = tuple[Square, Square, Piece]
 
 
 class ChessMoves:
@@ -28,7 +27,7 @@ class ChessMoves:
 
     def get_piece_valid_moves(self,
                               piece_square: Square) -> list[Move]:
-        move: Move = []
+        move: Move = (0, 0, "")
         new_square: Square = 0
         piece: Piece = self.board.squares[piece_square]
         piece_rank: int = self.board.get_row(piece_square)
@@ -46,7 +45,7 @@ class ChessMoves:
                 # Single step move, no capture
                 new_square = (piece_square
                               + pieces.WHITE_PAWN_SINGLE_STEP_OFFSET)
-                move = [piece_square, new_square, piece]
+                move = (piece_square, new_square, piece)
                 # No promotion move
                 if (piece_rank > 1 and piece_rank < 7 and
                     self.board.squares[new_square]
@@ -57,7 +56,7 @@ class ChessMoves:
                     new_square = (
                         piece_square +
                         pieces.WHITE_PAWN_DOUBLE_STEP_OFFSET)
-                    move = [piece_square, new_square, piece]
+                    move = (piece_square, new_square, piece)
                     if (piece_rank == 2 and
                         self.board.squares[new_square]
                         == self.board.EMPTY_SQUARE and
@@ -68,13 +67,13 @@ class ChessMoves:
                       self.board.squares[new_square]
                       == self.board.EMPTY_SQUARE):
                     for new_piece in pieces.WHITE_PROMOTABLE_PIECES:
-                        move = [piece_square, new_square, new_piece]
+                        move = (piece_square, new_square, new_piece)
                         if self.is_king_safe_after_move(move):
                             valid_moves.append(move)
                 # Capture move
                 for offset in pieces.WHITE_PAWN_CAPTURE_OFFSETS:
                     new_square = piece_square + offset
-                    move = [piece_square, new_square, piece]
+                    move = (piece_square, new_square, piece)
                     if new_square & 0x88:
                         continue
                     if (self.board.squares[new_square]
@@ -86,9 +85,9 @@ class ChessMoves:
                             # Promotion with capture moves
                             for new_piece in \
                                 pieces.WHITE_PROMOTABLE_PIECES:
-                                move = ([piece_square,
+                                move = (piece_square,
                                          new_square,
-                                         new_piece])
+                                         new_piece)
                                 if self.is_king_safe_after_move(move):
                                     valid_moves.append(move)
                     # En passant capture move
@@ -99,7 +98,7 @@ class ChessMoves:
                 # Single step move, no capture
                 new_square = (piece_square
                               + pieces.BLACK_PAWN_SINGLE_STEP_OFFSET)
-                move = [piece_square, new_square, piece]
+                move = (piece_square, new_square, piece)
                 # No promotion move
                 if (piece_rank > 1 and piece_rank < 7 and
                     self.board.squares[new_square]
@@ -111,7 +110,7 @@ class ChessMoves:
                         piece_square +
                         pieces.BLACK_PAWN_DOUBLE_STEP_OFFSET
                     )
-                    move = [piece_square, new_square, piece]
+                    move = (piece_square, new_square, piece)
                     if (piece_rank == 7 and
                         self.board.squares[new_square]
                         == self.board.EMPTY_SQUARE and
@@ -122,13 +121,13 @@ class ChessMoves:
                       self.board.squares[new_square]
                       == self.board.EMPTY_SQUARE):
                     for new_piece in pieces.BLACK_PROMOTABLE_PIECES:
-                        move = [piece_square, new_square, new_piece]
+                        move = (piece_square, new_square, new_piece)
                         if self.is_king_safe_after_move(move):
                             valid_moves.append(move)
                 # Capture move
                 for offset in pieces.BLACK_PAWN_CAPTURE_OFFSETS:
                     new_square = piece_square + offset
-                    move = [piece_square, new_square, piece]
+                    move = (piece_square, new_square, piece)
                     if new_square & 0x88:
                         continue
                     if (self.board.squares[new_square]
@@ -140,8 +139,8 @@ class ChessMoves:
                             # Promotion with capture moves
                             for new_piece in \
                                 pieces.BLACK_PROMOTABLE_PIECES:
-                                move = [piece_square,
-                                        new_square, new_piece]
+                                move = (piece_square,
+                                        new_square, new_piece)
                                 if self.is_king_safe_after_move(move):
                                     valid_moves.append(move)
                     # En passant capture move
@@ -159,7 +158,7 @@ class ChessMoves:
                     )
                 for offset in pieces.KNIGHT_OFFSETS:
                     new_square = piece_square + offset
-                    move = [piece_square, new_square, piece]
+                    move = (piece_square, new_square, piece)
                     if new_square & 0x88:
                         continue
                     if ((self.board.squares[new_square]
@@ -230,27 +229,27 @@ class ChessMoves:
                 if (K_side_path_is_clear and
                     K_side_path_not_attacked and
                     "K" in self.board.castling_rights):
-                    move = [piece_square, 118, piece]
+                    move = (piece_square, 118, piece)
                     valid_moves.append(move)
                 if (Q_side_path_is_clear and
                     Q_side_path_not_attacked and
                     "Q" in self.board.castling_rights):
-                    move = [piece_square, 114, piece]
+                    move = (piece_square, 114, piece)
                     valid_moves.append(move)
                 if (k_side_path_is_clear and
                     k_path_not_attacked and
                     "k" in self.board.castling_rights):
-                    move = [piece_square, 6, piece]
+                    move = (piece_square, 6, piece)
                     valid_moves.append(move)
                 if (q_side_path_is_clear and
                     q_path_not_attacked and
                     "q" in self.board.castling_rights):
-                    move = [piece_square, 2, piece]
+                    move = (piece_square, 2, piece)
                     valid_moves.append(move)
                 # Captures and single moves
                 for offset in pieces.KING_OFFSETS:
                     new_square = piece_square + offset
-                    move = [piece_square, new_square, piece]
+                    move = (piece_square, new_square, piece)
                     if new_square & 0x88:
                         continue
                     if (not self.is_attacked_square(
@@ -278,7 +277,7 @@ class ChessMoves:
                     offsets = pieces.QUEEN_OFFSETS
                 for offset in offsets:
                     new_square = piece_square + offset
-                    move = [piece_square, new_square, piece]
+                    move = (piece_square, new_square, piece)
                     while new_square & 0x88 == 0:
                         if(self.board.squares[new_square]
                            == self.board.EMPTY_SQUARE):
@@ -290,7 +289,7 @@ class ChessMoves:
                         else:
                             break
                         new_square += offset
-                        move = [piece_square, new_square, piece]
+                        move = (piece_square, new_square, piece)
         return valid_moves
 
 
@@ -309,8 +308,8 @@ class ChessMoves:
 
     def is_king_safe_after_move(self, move: Move) -> bool:
         # Save involved squares previous state
-        from_square_piece: Square = self.board.squares[move[0]]
-        to_square_piece: Square = self.board.squares[move[1]]
+        from_square_piece: Piece = self.board.squares[move[0]]
+        to_square_piece: Piece = self.board.squares[move[1]]
         # Consider whose turn it is
         if self.board.is_white_turn:
             king_square = self.board.white_king_square
@@ -382,16 +381,17 @@ class ChessMoves:
 
     def make_move(self, move: Move) -> None:
         capture_move: bool = False
+        piece: Piece = ""
         from_square: Square = move[0]
         to_square: Square = move[1]
-        if self.board[to_square] != self.board.EMPTY_SQUARE:
+        if self.board.squares[to_square] != self.board.EMPTY_SQUARE:
             capture_move = True
-        piece: Piece = move[2]
+        piece = move[2]
         if (from_square not in self.board.piece_squares or
             move not in self.get_piece_valid_moves(from_square)):
             return
-        self.board.set_piece(from_square, self.board.EMPTY_SQUARE)
-        self.board.set_piece(to_square, piece)
+        self.board.squares[from_square] = self.board.EMPTY_SQUARE
+        self.board.squares[to_square] = piece
         # update castling rights
         if piece in pieces.ROYAL_PIECES:
             self.board.castling_rights.discard(piece)
@@ -414,6 +414,9 @@ class ChessMoves:
 
 
     def show_all_valid_moves(self, notation: str = "uci") -> None:
+        from_part: str = ""
+        piece: Piece = ""
+        to_part: str = ""
         valid_moves = self.get_board_valid_moves()
         print(f"Valid moves ({len(valid_moves)}):", end=" ")
         for move in valid_moves:

@@ -1,10 +1,9 @@
 from board import Board
 from chess_pieces import ROYAL_PIECES, UNICODE_SYMBOLS
-from typing import TypeAlias
 
 
-Piece: TypeAlias = str
-Square: TypeAlias = int
+type Piece = str
+type Square = int
 
 
 class ChessBoard(Board):
