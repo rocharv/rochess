@@ -1,5 +1,5 @@
-from board import Board
-from chess_pieces import ROYAL_PIECES, UNICODE_SYMBOLS
+from rochess.board import Board
+from rochess.chess_pieces import ROYAL_PIECES, UNICODE_SYMBOLS
 
 
 type Piece = str
@@ -36,7 +36,7 @@ class ChessBoard(Board):
     def __init__(self,
                  castling_rights: set[str] = ROYAL_PIECES,
                  en_passant_target: str = "",
-                 from_chars_list: list[str] = [],
+                 from_char_list: list[str] = [],
                  from_fen_string: str = "",
                  full_move_number: int = 1,
                  half_move_clock: int = 0  ,
@@ -52,8 +52,8 @@ class ChessBoard(Board):
         # Boarding setup from fen string or chars string
         if from_fen_string:
             self.set_board_from_fen(from_fen_string)
-        elif from_chars_list:
-            self.set_board_from_chars(from_chars_list)
+        elif from_char_list:
+            self.set_board_from_chars(from_char_list)
         else:
             default_board: str = (
             "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
@@ -76,11 +76,11 @@ class ChessBoard(Board):
 
         Notes
         -----
-        This method iterates over the `chars_list` and sets the pieces
+        This method iterates over the `char_list` and sets the pieces
         on the chess board accordingly.
-        The `chars_list` should have a length equal to the number of
+        The `char_list` should have a length equal to the number of
         cells on the chess board.
-        Each character in the `chars_list` represents a piece on the
+        Each character in the `char_list` represents a piece on the
         chess board.
 
         Examples
@@ -188,7 +188,7 @@ class ChessBoard(Board):
         if fen_turn == "w":
             self.is_white_turn = True
         else:
-            self.is_white_turn = True
+            self.is_white_turn = False
         # FEN castling rights parsing
         self.castling_rights = set()
         if fen_offset == 0:

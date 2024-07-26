@@ -1,5 +1,5 @@
-import chess_pieces as pieces
-from chess_board import ChessBoard
+import rochess.chess_pieces as pieces
+from rochess.chess_board import ChessBoard
 
 
 type Square = int
@@ -421,6 +421,23 @@ class ChessMoves:
             self.board.half_move_clock = 0
         else:
             self.board.half_move_clock += 1
+        # Remove castling rights if rook or king moves
+        if from_square == self.board.get_square_from_algebraic("a1"):
+            self.board.castling_rights.discard("Q")
+        elif from_square == self.board.get_square_from_algebraic("e1"):
+            self.board.castling_rights.discard("K")
+            self.board.castling_rights.discard("Q")
+        elif from_square == self.board.get_square_from_algebraic("h1"):
+            self.board.castling_rights.discard("K")
+        elif from_square == self.board.get_square_from_algebraic("a8"):
+            self.board.castling_rights.discard("Q")
+        elif from_square == self.board.get_square_from_algebraic("e8"):
+            self.board.castling_rights.discard("k")
+            self.board.castling_rights.discard("q")
+        elif from_square == self.board.get_square_from_algebraic("h8"):
+            self.board.castling_rights.discard("k")
+        # Change turn
+        self.board.is_white_turn = not self.board.is_white_turn
 
 
     def show_all_valid_moves(self, notation: str = "uci") -> None:
