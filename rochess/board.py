@@ -35,6 +35,7 @@ class Board:
         self.squares: list[Piece] = []
         self.reset_squares()
 
+
     def get_algebraic_coordinate(self, square: Square) -> str:
         """
         Returns the algebraic coordinate of the square.
@@ -61,7 +62,19 @@ class Board:
         return square % (self.number_of_columns * 2) + 1
 
 
-    def get_piece(self, column: int, row: int) -> Piece:
+    def get_piece(self, square: Square) -> Piece:
+        """
+        Returns the piece at the specified square.
+
+        Parameters
+        ----------
+        square : Square
+            The square to get the piece from.
+        """
+        return self.squares[square]
+
+
+    def get_piece_from_coords(self, column: int, row: int) -> Piece:
         """
         Returns the piece at the specified column and row.
 
@@ -77,7 +90,7 @@ class Board:
         return self.squares[index]
 
 
-    def get_piece_alg(self, algebraic_coordinate: str) -> Piece:
+    def get_piece_from_algebraic(self, algebraic_coordinate: str) -> Piece:
         """
         Returns the piece at the specified algebraic coordinate.
 
@@ -90,7 +103,7 @@ class Board:
             self.COLUMN_NAMES.index(algebraic_coordinate[0]) + 1
         )
         row: int = int(algebraic_coordinate[1])
-        return self.get_piece(column, row)
+        return self.get_piece_from_coords(column, row)
 
 
     def get_row(self, square: Square) -> int:
@@ -106,9 +119,26 @@ class Board:
                                       // (self.number_of_columns * 2))
 
 
-    def get_square(self, column: int, row: int) -> Square:
+    def get_square_from_algebraic(self, algebraic_coordinate: str) -> Square:
         """
-        Returns the square of the column and row.
+        Returns the square corresponding to the algebraic coordinate.
+
+        Parameters
+        ----------
+        algebraic_coordinate : str
+            The algebraic coordinate of the square.
+        """
+        column: int = (
+            self.COLUMN_NAMES.index(algebraic_coordinate[0]) + 1
+        )
+        row: int = int(algebraic_coordinate[1])
+        return ((self.number_of_rows - row)
+                * self.number_of_columns * 2 + column - 1)
+
+
+    def get_square_from_coord(self, column: int, row: int) -> Square:
+        """
+        Returns the square corresponding for the pair column and row.
 
         Parameters
         ----------
@@ -137,9 +167,28 @@ class Board:
             )
 
 
-    def set_piece(self, column: int, row: int, piece: Piece) -> None:
+    def set_piece(self, square: Square, piece: Piece) -> None:
         """
-        Sets the piece at the specified column and row.
+        Sets the piece at the specified square.
+
+        Parameters
+        ----------
+        square : Square
+            The square to set the piece.
+        piece : Piece
+            The piece to set.
+        """
+        self.squares[square] = piece
+        if piece != self.EMPTY_SQUARE:
+            self.piece_squares.add(square)
+        else:
+            self.piece_squares.discard(square)
+
+
+    def set_piece_from_coords(self,
+                              column: int, row: int, piece: Piece) -> None:
+        """
+        Sets the piece from coordinates, column and row.
 
         Parameters
         ----------
@@ -152,14 +201,10 @@ class Board:
         """
         square: Square = ((self.number_of_rows - row)
                           * self.number_of_columns * 2 + column - 1)
-        self.squares[square] = piece
-        if piece != self.EMPTY_SQUARE:
-            self.piece_squares.add(square)
-        else:
-            self.piece_squares.discard(square)
+        self.set_piece(square, piece)
 
 
-    def set_piece_alg(self,
+    def set_piece_from_algebraic(self,
                       algebraic_coordinate: str,
                       piece: Piece) -> None:
         """
@@ -176,7 +221,7 @@ class Board:
             self.COLUMN_NAMES.index(algebraic_coordinate[0]) + 1
         )
         row: int = int(algebraic_coordinate[1])
-        self.set_piece(column, row, piece)
+        self.set_piece_from_coords(column, row, piece)
 
 
     def show(self,

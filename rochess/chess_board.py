@@ -100,12 +100,12 @@ class ChessBoard(Board):
         file: int = 0
         for char in chars_list:
             file += 1
-            self.set_piece(file, rank, char)
+            self.set_piece_from_coords(file, rank, char)
             # update king square
             if char == "K":
-                self.white_king_square = self.get_square(file, rank)
+                self.white_king_square = self.get_square_from_coord(file, rank)
             elif char == "k":
-                self.black_king_square = self.get_square(file, rank)
+                self.black_king_square = self.get_square_from_coord(file, rank)
             # update file and rank
             if file == self.number_of_columns:
                 file = 0
@@ -177,12 +177,12 @@ class ChessBoard(Board):
                 file = 0
             else:
                 file += 1
-                self.set_piece(file, rank, char)
+                self.set_piece_from_coords(file, rank, char)
                 # update king square
                 if char == "K":
-                    self.white_king_square = self.get_square(file, rank)
+                    self.white_king_square = self.get_square_from_coord(file, rank)
                 elif char == "k":
-                    self.black_king_square = self.get_square(file, rank)
+                    self.black_king_square = self.get_square_from_coord(file, rank)
         # FEN turn parsing
         fen_turn = fen_parts[1]
         if fen_turn == "w":

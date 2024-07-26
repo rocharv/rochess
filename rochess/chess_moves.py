@@ -4,10 +4,12 @@ from chess_board import ChessBoard
 
 type Square = int
 type Piece = str
-# Move is a tuple of two squares and a piece, in the form
-# [from_square, to_square, piece]. The piece is the piece that will be
-# on the destination square after the move, this is relevant because of
-# pawn promotions.
+"""
+Move is a tuple of two squares and a piece, in the form
+(from_square, to_square, piece). The piece is the piece that will be
+on the destination square after the move, this is relevant because of
+pawn promotions.
+"""
 type Move = tuple[Square, Square, Piece]
 
 
@@ -29,16 +31,14 @@ class ChessMoves:
                               piece_square: Square) -> list[Move]:
         move: Move = (0, 0, "")
         new_square: Square = 0
-        piece: Piece = self.board.squares[piece_square]
+        piece: Piece = self.board.get_piece(piece_square)
         piece_rank: int = self.board.get_row(piece_square)
         valid_moves: list[Move] = []
         white_ally: bool = True
 
         # if is not piece's color turn
-        if ((piece in pieces.WHITE_PIECES and
-             not self.board.is_white_turn) or
-            ((piece in pieces.BLACK_PIECES and
-              self.board.is_white_turn))):
+        if ((piece in pieces.WHITE_PIECES and not self.board.is_white_turn) or
+            (piece in pieces.BLACK_PIECES and self.board.is_white_turn)):
             return []
         match piece:
             case "P":
@@ -48,7 +48,7 @@ class ChessMoves:
                 move = (piece_square, new_square, piece)
                 # No promotion move
                 if (piece_rank > 1 and piece_rank < 7 and
-                    self.board.squares[new_square]
+                    self.board.get_piece(new_square)
                     == self.board.EMPTY_SQUARE and
                     self.is_king_safe_after_move(move)):
                     valid_moves.append(move)
@@ -58,13 +58,13 @@ class ChessMoves:
                         pieces.WHITE_PAWN_DOUBLE_STEP_OFFSET)
                     move = (piece_square, new_square, piece)
                     if (piece_rank == 2 and
-                        self.board.squares[new_square]
+                        self.board.get_piece(new_square)
                         == self.board.EMPTY_SQUARE and
                         self.is_king_safe_after_move(move)):
                         valid_moves.append(move)
                 # Promotion move
                 elif (piece_rank == 7 and
-                      self.board.squares[new_square]
+                      self.board.get_piece(new_square)
                       == self.board.EMPTY_SQUARE):
                     for new_piece in pieces.WHITE_PROMOTABLE_PIECES:
                         move = (piece_square, new_square, new_piece)
@@ -76,7 +76,7 @@ class ChessMoves:
                     move = (piece_square, new_square, piece)
                     if new_square & 0x88:
                         continue
-                    if (self.board.squares[new_square]
+                    if (self.board.get_piece(new_square)
                         in pieces.BLACK_CAPTURABLE_PIECES):
                         if (piece_rank > 1 and piece_rank < 7 and
                             self.is_king_safe_after_move(move)):
@@ -85,9 +85,7 @@ class ChessMoves:
                             # Promotion with capture moves
                             for new_piece in \
                                 pieces.WHITE_PROMOTABLE_PIECES:
-                                move = (piece_square,
-                                         new_square,
-                                         new_piece)
+                                move = (piece_square, new_square, new_piece)
                                 if self.is_king_safe_after_move(move):
                                     valid_moves.append(move)
                     # En passant capture move
@@ -101,7 +99,7 @@ class ChessMoves:
                 move = (piece_square, new_square, piece)
                 # No promotion move
                 if (piece_rank > 1 and piece_rank < 7 and
-                    self.board.squares[new_square]
+                    self.board.get_piece(new_square)
                     == self.board.EMPTY_SQUARE and
                     self.is_king_safe_after_move(move)):
                     valid_moves.append(move)
@@ -112,13 +110,13 @@ class ChessMoves:
                     )
                     move = (piece_square, new_square, piece)
                     if (piece_rank == 7 and
-                        self.board.squares[new_square]
+                        self.board.get_piece(new_square)
                         == self.board.EMPTY_SQUARE and
                         self.is_king_safe_after_move(move)):
                         valid_moves.append(move)
                 # Promotion move
                 elif (piece_rank == 2 and
-                      self.board.squares[new_square]
+                      self.board.get_piece(new_square)
                       == self.board.EMPTY_SQUARE):
                     for new_piece in pieces.BLACK_PROMOTABLE_PIECES:
                         move = (piece_square, new_square, new_piece)
@@ -130,7 +128,7 @@ class ChessMoves:
                     move = (piece_square, new_square, piece)
                     if new_square & 0x88:
                         continue
-                    if (self.board.squares[new_square]
+                    if (self.board.get_piece(new_square)
                         in pieces.WHITE_CAPTURABLE_PIECES):
                         if (piece_rank > 1 and piece_rank < 7 and
                             self.is_king_safe_after_move(move)):
@@ -161,9 +159,9 @@ class ChessMoves:
                     move = (piece_square, new_square, piece)
                     if new_square & 0x88:
                         continue
-                    if ((self.board.squares[new_square]
+                    if ((self.board.get_piece(new_square)
                          == self.board.EMPTY_SQUARE or
-                        self.board.squares[new_square]
+                        self.board.get_piece(new_square)
                         in enemy_capturable_pieces) and
                         self.is_king_safe_after_move(move)):
                         valid_moves.append(move)
@@ -171,81 +169,87 @@ class ChessMoves:
                 # Castling
                 if piece.isupper():
                     white_ally = True
-                    enemy_capturable_pieces = (
-                        pieces.BLACK_CAPTURABLE_PIECES
+                    enemy_capturable_pieces = pieces.BLACK_CAPTURABLE_PIECES
+                    K_side_path_is_clear = (
+                        self.board.get_piece_from_algebraic("f1")
+                        == self.board.EMPTY_SQUARE and
+                        self.board.get_piece_from_algebraic("g1")
+                        == self.board.EMPTY_SQUARE
                     )
-                    K_side_path_is_clear = (self.board.squares[117]
-                                            == self.board.EMPTY_SQUARE
-                                            and
-                                            self.board.squares[118]
-                                            == self.board.EMPTY_SQUARE)
                     K_side_path_not_attacked = not (
-                        self.is_attacked_square(117, True) or
-                        self.is_attacked_square(118, True)
+                        self.is_attacked_square_from_algebraic("e1", False) or
+                        self.is_attacked_square_from_algebraic("f1", False) or
+                        self.is_attacked_square_from_algebraic("g1", False)
                     )
-                    Q_side_path_is_clear = (self.board.squares[113]
-                                            == self.board.EMPTY_SQUARE
-                                            and
-                                            self.board.squares[114]
-                                            == self.board.EMPTY_SQUARE
-                                            and
-                                            self.board.squares[115]
-                                            == self.board.EMPTY_SQUARE)
+                    Q_side_path_is_clear = (
+                        self.board.get_piece_from_algebraic("d1")
+                        == self.board.EMPTY_SQUARE and
+                        self.board.get_piece_from_algebraic("c1")
+                        == self.board.EMPTY_SQUARE and
+                        self.board.get_piece_from_algebraic("b1")
+                        == self.board.EMPTY_SQUARE
+                    )
                     Q_side_path_not_attacked = not (
-                        self.is_attacked_square(113, True) or
-                        self.is_attacked_square(114, True) or
-                        self.is_attacked_square(115, True)
+                        self.is_attacked_square_from_algebraic("e1", False) or
+                        self.is_attacked_square_from_algebraic("d1", False) or
+                        self.is_attacked_square_from_algebraic("c1", False)
                     )
-                    k_side_path_is_clear = False
-                    q_side_path_is_clear = False
-                else:
-                    white_ally = False
-                    enemy_capturable_pieces = (
-                        pieces.WHITE_CAPTURABLE_PIECES
+                    if (K_side_path_is_clear and
+                        K_side_path_not_attacked and
+                        "K" in self.board.castling_rights):
+                        move = (piece_square,
+                            self.board.get_square_from_algebraic("g1"),
+                            piece
                     )
-                    k_side_path_is_clear = (self.board.squares[5]
-                                            == self.board.EMPTY_SQUARE
-                                            and
-                                            self.board.squares[6]
-                                             == self.board.EMPTY_SQUARE)
-                    k_path_not_attacked = not (
-                        self.is_attacked_square(5, False) or
-                        self.is_attacked_square(6, False)
-                    )
-                    q_side_path_is_clear = (self.board.squares[1]
-                                            == self.board.EMPTY_SQUARE
-                                            and
-                                            self.board.squares[2] ==
-                                            self.board.EMPTY_SQUARE and
-                                            self.board.squares[3] ==
-                                            self.board.EMPTY_SQUARE)
-                    q_path_not_attacked = not (
-                        self.is_attacked_square(1, False) or
-                        self.is_attacked_square(2, False) or
-                        self.is_attacked_square(3, False)
-                    )
-                    K_side_path_is_clear = False
-                    Q_side_path_is_clear = False
-                if (K_side_path_is_clear and
-                    K_side_path_not_attacked and
-                    "K" in self.board.castling_rights):
-                    move = (piece_square, 118, piece)
-                    valid_moves.append(move)
                 if (Q_side_path_is_clear and
                     Q_side_path_not_attacked and
                     "Q" in self.board.castling_rights):
-                    move = (piece_square, 114, piece)
-                    valid_moves.append(move)
-                if (k_side_path_is_clear and
-                    k_path_not_attacked and
-                    "k" in self.board.castling_rights):
-                    move = (piece_square, 6, piece)
-                    valid_moves.append(move)
-                if (q_side_path_is_clear and
-                    q_path_not_attacked and
-                    "q" in self.board.castling_rights):
-                    move = (piece_square, 2, piece)
-                    valid_moves.append(move)
+                    move = (piece_square,
+                            self.board.get_square_from_algebraic("c1"),
+                            piece
+                    )
+                else:
+                    white_ally = False
+                    enemy_capturable_pieces = pieces.WHITE_CAPTURABLE_PIECES
+                    k_side_path_is_clear = (
+                        self.board.get_piece_from_algebraic("f8")
+                        == self.board.EMPTY_SQUARE and
+                        self.board.get_piece_from_algebraic("g8")
+                        == self.board.EMPTY_SQUARE
+                    )
+                    k_path_not_attacked = not (
+                        self.is_attacked_square_from_algebraic("e8", False) or
+                        self.is_attacked_square_from_algebraic("f8", False) or
+                        self.is_attacked_square_from_algebraic("g8", False)
+                    )
+                    q_side_path_is_clear = (
+                        self.board.get_piece_from_algebraic("d8")
+                        == self.board.EMPTY_SQUARE and
+                        self.board.get_piece_from_algebraic("c8")
+                        == self.board.EMPTY_SQUARE and
+                        self.board.get_piece_from_algebraic("b8")
+                        == self.board.EMPTY_SQUARE
+                    )
+                    q_path_not_attacked = not (
+                        self.is_attacked_square_from_algebraic("e8", False) or
+                        self.is_attacked_square_from_algebraic("d8", False) or
+                        self.is_attacked_square_from_algebraic("c8", False)
+                    )
+                    if (k_side_path_is_clear and
+                        k_path_not_attacked and
+                        "k" in self.board.castling_rights):
+                        move = (piece_square,
+                                self.board.get_square_from_algebraic("g8"),
+                                piece
+                        )
+                    if (q_side_path_is_clear and
+                        q_path_not_attacked and
+                        "q" in self.board.castling_rights):
+                        move = (piece_square,
+                                self.board.get_square_from_algebraic("c8"),
+                                piece
+                        )
+                valid_moves.append(move)
                 # Captures and single moves
                 for offset in pieces.KING_OFFSETS:
                     new_square = piece_square + offset
@@ -254,9 +258,9 @@ class ChessMoves:
                         continue
                     if (not self.is_attacked_square(
                             new_square, white_ally) and
-                        (self.board.squares[new_square]
+                        (self.board.get_piece(new_square)
                          == self.board.EMPTY_SQUARE or
-                        self.board.squares[new_square]
+                        self.board.get_piece(new_square)
                         in enemy_capturable_pieces)):
                         valid_moves.append(move)
             # Sliding pieces:bishop, rook, queen
@@ -279,10 +283,10 @@ class ChessMoves:
                     new_square = piece_square + offset
                     move = (piece_square, new_square, piece)
                     while new_square & 0x88 == 0:
-                        if(self.board.squares[new_square]
+                        if(self.board.get_piece(new_square)
                            == self.board.EMPTY_SQUARE):
                             valid_moves.append(move)
-                        elif (self.board.squares[new_square]
+                        elif (self.board.get_piece(new_square)
                               in enemy_capturable_pieces):
                             valid_moves.append(move)
                             break
@@ -297,7 +301,7 @@ class ChessMoves:
                            square: Square,
                            is_white_ally: bool) -> bool:
         for piece_square in self.board.piece_squares:
-            piece = self.board.squares[piece_square]
+            piece = self.board.get_piece(piece_square)
             if ((piece.isupper() and is_white_ally) or
                 (piece.islower() and not is_white_ally)):
                 continue
@@ -306,10 +310,18 @@ class ChessMoves:
         return False
 
 
+    def is_attacked_square_from_algebraic(self,
+                                          algebraic_coordinate: str,
+                                          is_white_ally: bool) -> bool:
+        square: Square = self.board.get_square_from_algebraic(
+            algebraic_coordinate)
+        return self.is_attacked_square(square, is_white_ally)
+
+
     def is_king_safe_after_move(self, move: Move) -> bool:
         # Save involved squares previous state
-        from_square_piece: Piece = self.board.squares[move[0]]
-        to_square_piece: Piece = self.board.squares[move[1]]
+        from_square_piece: Piece = self.board.get_piece(move[0])
+        to_square_piece: Piece = self.board.get_piece(move[1])
         # Consider whose turn it is
         if self.board.is_white_turn:
             king_square = self.board.white_king_square
@@ -318,18 +330,16 @@ class ChessMoves:
             king_square = self.board.black_king_square
             is_white_ally = False
         # Make move
-        self.board.squares[move[0]] = self.board.EMPTY_SQUARE
-        self.board.piece_squares.discard(move[0])
-        self.board.squares[move[1]] = move[2]
+        self.board.set_piece(move[0], self.board.EMPTY_SQUARE)
+        self.board.set_piece(move[1], move[2])
         # Check if king is not in check after move before adding it as
         # a valid move
         is_king_safe: bool = (
             not self.is_attacked_square(king_square, is_white_ally)
             )
         # Undo move
-        self.board.squares[move[0]] = from_square_piece
-        self.board.piece_squares.add(move[0])
-        self.board.squares[move[1]] = to_square_piece
+        self.board.set_piece(move[0], from_square_piece)
+        self.board.set_piece(move[1], to_square_piece)
         # Return if king is safe after move
         if is_king_safe:
             return True
@@ -338,7 +348,7 @@ class ChessMoves:
     def is_piece_attacking_square(self,
                                   piece_square: int,
                                   target_square: int) -> bool:
-        piece = self.board.squares[piece_square]
+        piece = self.board.get_piece(piece_square)
         if piece == "P":
             offsets = pieces.WHITE_PAWN_CAPTURE_OFFSETS
             is_sliding_piece = False
@@ -372,7 +382,7 @@ class ChessMoves:
                 while new_square & 0x88 == 0:
                     if new_square == target_square:
                         return True
-                    if (self.board.squares[new_square]
+                    if (self.board.get_piece(new_square)
                         != self.board.EMPTY_SQUARE):
                         break
                     new_square += offset
@@ -380,18 +390,18 @@ class ChessMoves:
 
 
     def make_move(self, move: Move) -> None:
-        capture_move: bool = False
-        piece: Piece = ""
         from_square: Square = move[0]
+        piece: Piece = move[2]
         to_square: Square = move[1]
-        if self.board.squares[to_square] != self.board.EMPTY_SQUARE:
-            capture_move = True
-        piece = move[2]
+        capture_move: bool = (self.board.get_piece(to_square)
+                              != self.board.EMPTY_SQUARE
+        )
         if (from_square not in self.board.piece_squares or
             move not in self.get_piece_valid_moves(from_square)):
             return
-        self.board.squares[from_square] = self.board.EMPTY_SQUARE
-        self.board.squares[to_square] = piece
+        # update squares
+        self.board.set_piece(from_square, self.board.EMPTY_SQUARE)
+        self.board.set_piece(to_square, piece)
         # update castling rights
         if piece in pieces.ROYAL_PIECES:
             self.board.castling_rights.discard(piece)
@@ -420,9 +430,9 @@ class ChessMoves:
         valid_moves = self.get_board_valid_moves()
         print(f"Valid moves ({len(valid_moves)}):", end=" ")
         for move in valid_moves:
-            piece = self.board.squares[move[0]]
+            piece = self.board.get_piece(move[0])
             # capture part
-            if (self.board.squares[move[1]]
+            if (self.board.get_piece(move[1])
                 != self.board.EMPTY_SQUARE and notation != "uci"):
                 capture_part = "x"
             else:
