@@ -1,3 +1,4 @@
+import pytest
 from rochess.board import Board
 
 
@@ -250,3 +251,51 @@ class TestBoard:
         ]
         # check piece_squares
         assert chess_board.piece_squares == {0, 6, 7, 67, 112, 118, 119}
+
+
+    def test_board_show(self, capsys):
+        chess_board = Board(8, 8)
+        chess_board.set_piece_from_algebraic("a1", "R")
+        chess_board.set_piece_from_algebraic("g1", "K")
+        chess_board.set_piece_from_algebraic("h1", "B")
+        chess_board.set_piece_from_algebraic("d4", "Q")
+        chess_board.set_piece_from_algebraic("a8", "r")
+        chess_board.set_piece_from_algebraic("g8", "k")
+        chess_board.set_piece_from_algebraic("h8", "b")
+        chess_board.show(show_coordinates=True)
+        captured, err = capsys.readouterr()
+        assert captured == (
+            '\n8| r . . . . . k b \n'
+            '7| . . . . . . . . \n'
+            '6| . . . . . . . . \n'
+            '5| . . . . . . . . \n'
+            '4| . . . Q . . . . \n'
+            '3| . . . . . . . . \n'
+            '2| . . . . . . . . \n'
+            '1| R . . . . . K B \n'
+            '  ----------------\n'
+            '   a b c d e f g h \n'
+        )
+
+
+    def test_board_show_no_coordinates(self, capsys):
+        chess_board = Board(8, 8)
+        chess_board.set_piece_from_algebraic("a1", "R")
+        chess_board.set_piece_from_algebraic("g1", "K")
+        chess_board.set_piece_from_algebraic("h1", "B")
+        chess_board.set_piece_from_algebraic("d4", "Q")
+        chess_board.set_piece_from_algebraic("a8", "r")
+        chess_board.set_piece_from_algebraic("g8", "k")
+        chess_board.set_piece_from_algebraic("h8", "b")
+        chess_board.show(show_coordinates=False)
+        captured, err = capsys.readouterr()
+        assert captured == (
+            '\nr . . . . . k b \n'
+            '. . . . . . . . \n'
+            '. . . . . . . . \n'
+            '. . . . . . . . \n'
+            '. . . Q . . . . \n'
+            '. . . . . . . . \n'
+            '. . . . . . . . \n'
+            'R . . . . . K B \n'
+        )
