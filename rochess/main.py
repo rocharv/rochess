@@ -1,5 +1,5 @@
-from chess_board import ChessBoard
-from chess_moves import ChessMoves
+from rochess.chess_board import ChessBoard
+from rochess.chess_moves import ChessMoves
 
 
 def main() -> None:
