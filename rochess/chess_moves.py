@@ -29,6 +29,53 @@ class ChessMoves:
         return board_valid_moves
 
 
+    def get_move_str(self, move: Move, notation: str = "uci") -> str:
+        piece: Piece = self.board.get_piece(move[0])
+        # capture part
+        if (self.board.get_piece(move[1])
+            != self.board.EMPTY_SQUARE and notation != "uci"):
+            capture_part = "x"
+        else:
+            capture_part = ""
+        # promotion part
+        if piece in ("P", "p") and (move[1] < 16 or move[1] > 111):
+            if notation == "uci":
+                promotion_part = move[2].lower()
+            elif notation == "algebraic":
+                promotion_part = "=" + move[2]
+            elif notation == "symbolic":
+                promotion_part = "=" + pieces.UNICODE_SYMBOLS[move[2]]
+        else:
+            promotion_part = ""
+        # from and to parts
+        if notation == "uci":
+            from_part = self.board.get_algebraic_coordinate(move[0])
+            to_part = self.board.get_algebraic_coordinate(move[1])
+        elif notation == "algebraic" or notation == "symbolic":
+            if notation == "algebraic":
+                piece_char = piece
+            else:
+                piece_char = pieces.UNICODE_SYMBOLS[piece]
+            from_part = (piece_char
+                            + self.board.get_algebraic_coordinate(move[0])
+            )
+            to_part = self.board.get_algebraic_coordinate(move[1])
+            # pawn exception
+            if piece.upper() == "P":
+                if capture_part and not notation == "uci":
+                    from_part = (
+                        self.board.get_algebraic_coordinate(
+                            move[0])[0]
+                        )
+                    to_part = self.board.get_algebraic_coordinate(
+                        move[1])[0]
+                else:
+                    from_part = ""
+                    to_part = self.board.get_algebraic_coordinate(
+                        move[1])
+        return from_part + capture_part + to_part + promotion_part
+
+
     def get_piece_valid_moves(self,
                               piece_square: Square) -> list[Move]:
         if piece_square == 99:
@@ -465,57 +512,8 @@ class ChessMoves:
 
 
     def show_all_valid_moves(self, notation: str = "uci") -> None:
-        from_part: str = ""
-        piece: Piece = ""
-        to_part: str = ""
         valid_moves = self.get_board_valid_moves()
         print(f"Valid moves ({len(valid_moves)}):", end=" ")
         for move in valid_moves:
-            piece = self.board.get_piece(move[0])
-            # capture part
-            if (self.board.get_piece(move[1])
-                != self.board.EMPTY_SQUARE and notation != "uci"):
-                capture_part = "x"
-            else:
-                capture_part = ""
-            # promotion part
-            if piece in ("P", "p") and (move[1] < 16 or move[1] > 111):
-                if notation == "uci":
-                    promotion_part = move[2].lower()
-                elif notation == "algebraic":
-                    promotion_part = "=" + move[2]
-                elif notation == "symbolic":
-                    promotion_part = ("="
-                                      + pieces.UNICODE_SYMBOLS[move[2]])
-            else:
-                promotion_part = ""
-            # from and to parts
-            if notation == "uci":
-                from_part = self.board.get_algebraic_coordinate(move[0])
-                to_part = self.board.get_algebraic_coordinate(move[1])
-            elif notation == "algebraic" or notation == "symbolic":
-                if notation == "algebraic":
-                    piece_char = piece
-                else:
-                    piece_char = pieces.UNICODE_SYMBOLS[piece]
-                from_part = (
-                    piece_char
-                    + self.board.get_algebraic_coordinate(move[0])
-                )
-                to_part = self.board.get_algebraic_coordinate(move[1])
-                # pawn exception
-                if piece.upper() == "P":
-                    if capture_part and not notation == "uci":
-                        from_part = (
-                            self.board.get_algebraic_coordinate(
-                                move[0])[0]
-                            )
-                        to_part = self.board.get_algebraic_coordinate(
-                            move[1])[0]
-                    else:
-                        from_part = ""
-                        to_part = self.board.get_algebraic_coordinate(
-                            move[1])
-            print(from_part + capture_part + to_part
-                  + promotion_part, end=" ")
+            print(self.get_move_str(move, notation), end=" ")
         print()
