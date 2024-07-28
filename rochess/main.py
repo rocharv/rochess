@@ -4,14 +4,13 @@ from rochess.chess_moves import ChessMoves
 
 def main() -> None:
     board = ChessBoard(
-        from_fen_string=(
-            "R6R/3Q4/1Q4Q1/4Q3/2Q4Q/Q4Q2/pp1Q4/kBNN1KB1 w - - 0 1"
-        )
+        # from_fen_string=("r4rk1/1pp1qppp/p1np1n2/2b1p1B1/2B1P1b1/P1NP1N2/1PP1QPPP/R4RK1 w - - 0 10")
     )
     board.show()
     board.show_info()
     moves = ChessMoves(board)
     moves.show_all_valid_moves(notation="algebraic")
+    print(moves.perft(3))
 
 
 if __name__ == '__main__':

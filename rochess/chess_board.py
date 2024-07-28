@@ -237,3 +237,8 @@ class ChessBoard(Board):
             print(f"Half-move clock: {self.half_move_clock}")
             # Full-move number
             print(f"Full-move number: {self.full_move_number}")
+            # Piece squares
+            piece_set: list[Square] = sorted(list(
+                map(self.get_algebraic_coordinate, self.piece_squares)
+            ))
+            print(f"Piece squares: {piece_set}")
