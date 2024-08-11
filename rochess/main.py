@@ -9,8 +9,8 @@ def main() -> None:
     board.show()
     board.show_info()
     moves = ChessMoves(board)
-    moves.show_all_valid_moves(notation="algebraic")
-    print(moves.perft(3))
+    moves.show_all_legal_moves(notation="algebraic")
+    print(moves.perft(4))
 
 
 if __name__ == '__main__':

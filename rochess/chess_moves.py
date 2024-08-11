@@ -20,13 +20,23 @@ class ChessMoves:
         self.previous_board = None
 
 
-    def get_board_valid_moves(self) -> list[Move]:
-        board_valid_moves: list[Move] = []
-        piece_valid_moves: list[Move] = []
+    def get_board_legal_moves(self) -> list[Move]:
+        board_legal_moves: list[Move] = []
+        piece_legal_moves: list[Move] = []
+        single_color_piece_squares: set[Square] = set()
+        # Separate piece squares by color
         for piece_square in set(self.board.piece_squares):
-            piece_valid_moves = self.get_piece_valid_moves(piece_square)
-            board_valid_moves.extend(piece_valid_moves)
-        return board_valid_moves
+            if (self.board.get_piece(piece_square).isupper and
+                self.board.is_white_turn):
+                single_color_piece_squares.add(piece_square)
+            elif (self.board.get_piece(piece_square).islower and
+                  not self.board.is_white_turn):
+                single_color_piece_squares.add(piece_square)
+        # Get legal moves for each piece
+        for piece_square in single_color_piece_squares:
+            piece_legal_moves = self.get_piece_legal_moves(piece_square)
+            board_legal_moves.extend(piece_legal_moves)
+        return board_legal_moves
 
 
     def get_move_str(self, move: Move, notation: str = "uci") -> str:
@@ -76,15 +86,13 @@ class ChessMoves:
         return from_part + capture_part + to_part + promotion_part
 
 
-    def get_piece_valid_moves(self,
+    def get_piece_legal_moves(self,
                               piece_square: Square) -> list[Move]:
-        if piece_square == 99:
-            pass
         move: Move = None
         new_square: Square = None
         piece: Piece = self.board.get_piece(piece_square)
         piece_rank: int = self.board.get_row(piece_square)
-        valid_moves: list[Move] = []
+        legal_moves: list[Move] = []
         is_white_ally: bool = True
         # if is not piece's color turn
         if ((piece in pieces.WHITE_PIECES and not self.board.is_white_turn) or
@@ -101,7 +109,7 @@ class ChessMoves:
                     self.board.get_piece(new_square) ==
                     self.board.EMPTY_SQUARE):
                     if self.is_king_safe_after_move(move):
-                        valid_moves.append(move)
+                        legal_moves.append(move)
                     # Double step move
                     new_square = (piece_square +
                                   pieces.WHITE_PAWN_DOUBLE_STEP_OFFSET
@@ -111,7 +119,7 @@ class ChessMoves:
                         self.board.get_piece(new_square)
                         == self.board.EMPTY_SQUARE and
                         self.is_king_safe_after_move(move)):
-                        valid_moves.append(move)
+                        legal_moves.append(move)
                 # Promotion move
                 elif (piece_rank == 7 and
                       self.board.get_piece(new_square)
@@ -119,7 +127,7 @@ class ChessMoves:
                     for new_piece in pieces.WHITE_PROMOTABLE_PIECES:
                         move = (piece_square, new_square, new_piece)
                         if self.is_king_safe_after_move(move):
-                            valid_moves.append(move)
+                            legal_moves.append(move)
                 # Capture move
                 for offset in pieces.WHITE_PAWN_CAPTURE_OFFSETS:
                     new_square = piece_square + offset
@@ -130,40 +138,39 @@ class ChessMoves:
                         in pieces.BLACK_CAPTURABLE_PIECES):
                         if (piece_rank > 1 and piece_rank < 7 and
                             self.is_king_safe_after_move(move)):
-                            valid_moves.append(move)
+                            legal_moves.append(move)
                         elif piece_rank == 7:
                             # Promotion with capture moves
                             for new_piece in \
                                 pieces.WHITE_PROMOTABLE_PIECES:
                                 move = (piece_square, new_square, new_piece)
                                 if self.is_king_safe_after_move(move):
-                                    valid_moves.append(move)
+                                    legal_moves.append(move)
                     # En passant capture move
                     elif new_square == self.board.en_passant_target:
                         if self.is_king_safe_after_move(move):
-                            valid_moves.append(move)
+                            legal_moves.append(move)
             case "p":
                 # Single step move, no capture
                 new_square = (piece_square
                               + pieces.BLACK_PAWN_SINGLE_STEP_OFFSET)
                 move = (piece_square, new_square, piece)
                 # No promotion move
-                if (piece_rank > 1 and piece_rank < 8 and
-                    self.board.get_piece(new_square)
-                    == self.board.EMPTY_SQUARE and
-                    self.is_king_safe_after_move(move)):
-                    valid_moves.append(move)
+                if (piece_rank > 2 and piece_rank < 8 and
+                    self.board.get_piece(new_square) ==
+                    self.board.EMPTY_SQUARE):
+                    if self.is_king_safe_after_move(move):
+                        legal_moves.append(move)
                     # Double step move
-                    new_square = (
-                        piece_square +
-                        pieces.BLACK_PAWN_DOUBLE_STEP_OFFSET
+                    new_square = (piece_square +
+                                  pieces.BLACK_PAWN_DOUBLE_STEP_OFFSET
                     )
-                    move = (piece_square, new_square, piece)
+                    move = piece_square, new_square, piece
                     if (piece_rank == 7 and
                         self.board.get_piece(new_square)
                         == self.board.EMPTY_SQUARE and
                         self.is_king_safe_after_move(move)):
-                        valid_moves.append(move)
+                        legal_moves.append(move)
                 # Promotion move
                 elif (piece_rank == 2 and
                       self.board.get_piece(new_square)
@@ -171,7 +178,7 @@ class ChessMoves:
                     for new_piece in pieces.BLACK_PROMOTABLE_PIECES:
                         move = (piece_square, new_square, new_piece)
                         if self.is_king_safe_after_move(move):
-                            valid_moves.append(move)
+                            legal_moves.append(move)
                 # Capture move
                 for offset in pieces.BLACK_PAWN_CAPTURE_OFFSETS:
                     new_square = piece_square + offset
@@ -182,7 +189,7 @@ class ChessMoves:
                         in pieces.WHITE_CAPTURABLE_PIECES):
                         if (piece_rank > 1 and piece_rank < 7 and
                             self.is_king_safe_after_move(move)):
-                            valid_moves.append(move)
+                            legal_moves.append(move)
                         elif piece_rank == 7:
                             # Promotion with capture moves
                             for new_piece in \
@@ -190,11 +197,11 @@ class ChessMoves:
                                 move = (piece_square,
                                         new_square, new_piece)
                                 if self.is_king_safe_after_move(move):
-                                    valid_moves.append(move)
+                                    legal_moves.append(move)
                     # En passant capture move
                     elif new_square == self.board.en_passant_target:
                         if self.is_king_safe_after_move(move):
-                            valid_moves.append(move)
+                            legal_moves.append(move)
             case "N" | "n":
                 if piece.isupper():
                     enemy_capturable_pieces = pieces.BLACK_CAPTURABLE_PIECES
@@ -210,7 +217,7 @@ class ChessMoves:
                         self.board.get_piece(new_square)
                         in enemy_capturable_pieces) and
                         self.is_king_safe_after_move(move)):
-                        valid_moves.append(move)
+                        legal_moves.append(move)
             case "K" | "k":
                 # Castling
                 if piece.isupper():
@@ -247,7 +254,7 @@ class ChessMoves:
                             self.board.get_square_from_algebraic("g1"),
                             piece
                         )
-                        valid_moves.append(move)
+                        legal_moves.append(move)
                     if (Q_side_path_is_clear and
                         Q_side_path_not_attacked and
                         "Q" in self.board.castling_rights):
@@ -255,7 +262,7 @@ class ChessMoves:
                                 self.board.get_square_from_algebraic("c1"),
                                 piece
                         )
-                        valid_moves.append(move)
+                        legal_moves.append(move)
                 else:
                     is_white_ally = False
                     enemy_capturable_pieces = pieces.WHITE_CAPTURABLE_PIECES
@@ -290,7 +297,7 @@ class ChessMoves:
                                 self.board.get_square_from_algebraic("g8"),
                                 piece
                         )
-                        valid_moves.append(move)
+                        legal_moves.append(move)
                     if (q_side_path_is_clear and
                         q_path_not_attacked and
                         "q" in self.board.castling_rights):
@@ -298,7 +305,7 @@ class ChessMoves:
                                 self.board.get_square_from_algebraic("c8"),
                                 piece
                         )
-                        valid_moves.append(move)
+                        legal_moves.append(move)
                 # Captures and single moves
                 for offset in pieces.KING_OFFSETS:
                     new_square = piece_square + offset
@@ -311,7 +318,7 @@ class ChessMoves:
                          == self.board.EMPTY_SQUARE or
                         self.board.get_piece(new_square)
                         in enemy_capturable_pieces)):
-                        valid_moves.append(move)
+                        legal_moves.append(move)
             # Sliding pieces:bishop, rook, queen
             case _:
                 if piece.isupper():
@@ -335,16 +342,16 @@ class ChessMoves:
                            self.is_king_safe_after_move(move)):
                         if(self.board.get_piece(new_square)
                            == self.board.EMPTY_SQUARE):
-                            valid_moves.append(move)
+                            legal_moves.append(move)
                         elif (self.board.get_piece(new_square)
                               in enemy_capturable_pieces):
-                            valid_moves.append(move)
+                            legal_moves.append(move)
                             break
                         else:
                             break
                         new_square += offset
                         move = (piece_square, new_square, piece)
-        return valid_moves
+        return legal_moves
 
 
     def is_attacked_square(self,
@@ -383,7 +390,7 @@ class ChessMoves:
         self.board.set_piece(move[0], self.board.EMPTY_SQUARE)
         self.board.set_piece(move[1], move[2])
         # Check if king is not in check after move before adding it as
-        # a valid move
+        # a legal move
         is_king_safe: bool = (
             not self.is_attacked_square(king_square, is_white_ally)
             )
@@ -446,23 +453,68 @@ class ChessMoves:
         capture_move: bool = (self.board.get_piece(to_square)
                               != self.board.EMPTY_SQUARE
         )
-        # Check if move is valid
+        # Check if move is legal
         if (from_square not in self.board.piece_squares or
-            move not in self.get_piece_valid_moves(from_square)):
+            move not in self.get_piece_legal_moves(from_square)):
             return
         # make a deep copy of the board before the move
         self.previous_board = deepcopy(self.board)
         # update squares
         self.board.set_piece(from_square, self.board.EMPTY_SQUARE)
         self.board.set_piece(to_square, piece)
-        # update castling rights
-        if piece in pieces.ROYAL_PIECES:
-            self.board.castling_rights.discard(piece)
-            # update king's square
-            if piece == "K":
-                self.board.white_king_square = to_square
-            elif piece == "k":
-                self.board.black_king_square = to_square
+        # move rook in castling
+        if (piece == "K" and
+            from_square == self.board.get_square_from_algebraic("e1")):
+            self.board.set_piece(self.board.get_square_from_algebraic("h1"),
+                self.board.EMPTY_SQUARE)
+            self.board.set_piece(self.board.get_square_from_algebraic("f1"),
+                                 "R")
+        elif (piece == "K" and
+              from_square == self.board.get_square_from_algebraic("e1")):
+            self.board.set_piece(self.board.get_square_from_algebraic("a1"),
+                                 self.board.EMPTY_SQUARE)
+            self.board.set_piece(self.board.get_square_from_algebraic("d1"),
+                                 "R")
+        elif (piece == "k" and
+              from_square == self.board.get_square_from_algebraic("e8")):
+            self.board.set_piece(self.board.get_square_from_algebraic("h8"),
+                                  self.board.EMPTY_SQUARE)
+            self.board.set_piece(self.board.get_square_from_algebraic("f8"),
+                                 "r")
+        elif (piece == "k" and
+              from_square == self.board.get_square_from_algebraic("e8")):
+            self.board.set_piece(self.board.get_square_from_algebraic("a8"),
+                                 self.board.EMPTY_SQUARE)
+            self.board.set_piece(self.board.get_square_from_algebraic("d8"),
+                                 "r")
+        # update castling rights if king or rook moves
+        if piece == "K":
+            self.board.castling_rights.discard("K")
+            self.board.castling_rights.discard("Q")
+        elif piece == "k":
+            self.board.castling_rights.discard("k")
+            self.board.castling_rights.discard("q")
+        elif piece == "R":
+            if from_square == self.board.get_square_from_algebraic("a1"):
+                self.board.castling_rights.discard("Q")
+            elif from_square == self.board.get_square_from_algebraic("h1"):
+                self.board.castling_rights.discard("K")
+        elif piece == "r":
+            if from_square == self.board.get_square_from_algebraic("a8"):
+                self.board.castling_rights.discard("q")
+            elif from_square == self.board.get_square_from_algebraic("h8"):
+                self.board.castling_rights.discard("k")
+        # update castling rights if rook is captured
+        if (piece.upper() == "R" and capture_move):
+            if to_square == self.board.get_square_from_algebraic("a1"):
+                self.board.castling_rights.discard("Q")
+            elif to_square == self.board.get_square_from_algebraic("h1"):
+                self.board.castling_rights.discard("K")
+        # update king's square
+        if piece == "K":
+            self.board.white_king_square = to_square
+        elif piece == "k":
+            self.board.black_king_square = to_square
         # update en passant target
         if piece.upper() == "P" and abs(from_square - to_square) == 32:
             self.board.en_passant_target = to_square
@@ -502,18 +554,18 @@ class ChessMoves:
     def perft(self, depth: int) -> int:
         if depth == 0:
             return 1
-        valid_moves = list(self.get_board_valid_moves())
+        legal_moves = list(self.get_board_legal_moves())
         nodes = 0
-        for move in valid_moves:
+        for move in legal_moves:
             self.make_move(move)
             nodes += self.perft(depth - 1)
             self.undo_last_move()
         return nodes
 
 
-    def show_all_valid_moves(self, notation: str = "uci") -> None:
-        valid_moves = self.get_board_valid_moves()
-        print(f"Valid moves ({len(valid_moves)}):", end=" ")
-        for move in valid_moves:
+    def show_all_legal_moves(self, notation: str = "uci") -> None:
+        legal_moves = self.get_board_legal_moves()
+        print(f"Legal moves ({len(legal_moves)}):", end=" ")
+        for move in legal_moves:
             print(self.get_move_str(move, notation), end=" ")
         print()
